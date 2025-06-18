@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cuide do Planeta!</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #e0f7fa;
+    text-align: center;
+    padding: 20px;
+  }
+  h1 {
+    color: #2e7d32;
+  }
+  #pollution {
+    font-size: 24px;
+    margin: 20px 0;
+  }
+  button {
+    margin: 10px;
+    padding: 15px 25px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background-color: #388e3c;
+    color: white;
+    transition: background-color 0.3s;
+  }
+  button:hover {
+    background-color: #2e7d32;
+  }
+  #message {
+    margin-top: 25px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #1565c0;
+  }
+</style>
+</head>
+<body>
+
+<h1>Cuide do Planeta!</h1>
+
+<div id="pollution">Nível de poluição: 50%</div>
+
+<button onclick="plantTree()">Plantar uma árvore</button>
+<button onclick="recycle()">Reciclar lixo</button>
+<button onclick="saveEnergy()">Economizar energia</button>
+
+<div id="message"></div>
+
+<script>
+  let pollution = 50; // começa em 50%
+  const pollutionDisplay = document.getElementById('pollution');
+  const message = document.getElementById('message');
+
+  function updateDisplay() {
+    pollutionDisplay.textContent = `Nível de poluição: ${pollution}%`;
+    if (pollution <= 0) {
+      message.textContent = "Parabéns! O planeta está limpo e saudável!";
+      disableButtons();
+    } else if (pollution >= 100) {
+      message.textContent = "Oh não! O planeta está muito poluído!";
+      disableButtons();
+    } else {
+      message.textContent = "";
+    }
+  }
+
+  function disableButtons() {
+    const buttons = document.querySelectorAll('button');
+    buttons.forEach(btn => btn.disabled = true);
+  }
+
+  function plantTree() {
+    if (pollution > 0) {
+      pollution -= 15;
+      if (pollution < 0) pollution = 0;
+      updateDisplay();
+    }
+  }
+
+  function recycle() {
+    if (pollution > 0) {
+      pollution -= 10;
+      if (pollution < 0) pollution = 0;
+      updateDisplay();
+    }
+  }
+
+  function saveEnergy() {
+    if (pollution > 0) {
+      pollution -= 12;
+      if (pollution < 0) pollution = 0;
+      updateDisplay();
+    }
+  }
+
+  // Poluição aumenta com o tempo para dar desafio
+  setInterval(() => {
+    if (pollution < 100 && pollution > 0) {
+      pollution += 5;
+      if (pollution > 100) pollution = 100;
+      updateDisplay();
+    }
+  }, 5000);
+
+  updateDisplay();
+</script>
+
+</body>
+</html>

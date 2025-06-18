@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="pt-BR" >
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EducaKids - Jogo do Planeta</title>
+  <style>
+    body {
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      background: linear-gradient(135deg, #a8e6cf, #dcedc1);
+      color: #2e7d32;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 2.8em;
+      margin-bottom: 0.2em;
+      text-shadow: 1px 1px 3px #81c784;
+    }
+    #board {
+      display: flex;
+      flex-wrap: wrap;
+      width: 1200px;
+      margin: 20px auto;
+      border: 4px solid #4caf50;
+      border-radius: 15px;
+      background: #ffffffdd;
+      padding: 10px;
+      user-select: none;
+    }
+    .cell {
+      box-sizing: border-box;
+      width: 60px;
+      height: 60px;
+      border: 2px solid #4caf50;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      font-weight: bold;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: background-color 0.3s;
+      margin: 2px;
+    }
+    .cell.challenge {
+      background: #a5d6a7;
+      cursor: help;
+    }
+    .cell.challenge:hover {
+      background: #81c784;
+    }
+    .player {
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      position: absolute;
+      top: 4px;
+      box-shadow: 0 0 6px #0003;
+      user-select: none;
+    }
+    .player1 { background: #d32f2f; left: 5px; }
+    .player2 { background: #388e3c; right: 5px; }
+    .player3 { background: #1976d2; left: 5px; bottom: 4px; }
+    .player4 { background: #fbc02d; right: 5px; bottom: 4px; }
+
+    #diceBtn {
+      margin: 25px;
+      font-size: 22px;
+      padding: 12px 35px;
+      background: #4caf50;
+      border: none;
+      color: white;
+      cursor: pointer;
+      border-radius: 15px;
+      box-shadow: 0 4px #388e3c;
+      transition: background-color 0.3s;
+      user-select: none;
+    }
+    #diceBtn:active {
+      box-shadow: none;
+      transform: translateY(3px);
+    }
+    #diceBtn:disabled {
+      background: #a5d6a7;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    #status {
+      font-size: 20px;
+      margin-top: 15px;
+      min-height: 36px;
+    }
+    #scoreboard {
+      margin-top: 15px;
+      font-size: 18px;
+    }
+    #scoreboard span {
+      font-weight: bold;
+    }
+    footer {
+      margin-top: 30px;
+      font-size: 14px;
+      color: #4caf50cc;
+    }
+    #diceResult {
+      font-size: 30px;
+      font-weight: bold;
+      color: #2e7d32;
+      margin-bottom: 10px;
+      user-select: none;
+    }
+    /* Modal de pergunta */
+    #questionModal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+    }
+    #questionBox {
+      background: white;
+      border-radius: 15px;
+      padding: 20px 30px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 0 15px #333;
+      user-select: none;
+    }
+    #questionBox h2 {
+      font-size: 1.4em;
+      color: #2e7d32;
+      margin-bottom: 15px;
+    }
+    .options {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .optionBtn {
+      background: #81c784;
+      border: none;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 18px;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 4px #4caf50;
+      transition: background-color 0.3s;
+      user-select: none;
+    }
+    .optionBtn:hover {
+      background: #66bb6a;
+    }
+
+    /* Seletor jogadores */
+    #playerSelect {
+      margin-bottom: 20px;
+    }
+    #startBtn {
+      font-size: 20px;
+      padding: 10px 30px;
+      background: #388e3c;
+      border: none;
+      border-radius: 12px;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 4px #2e7d32;
+      transition: background-color 0.3s;
+      user-select: none;
+    }
+    #startBtn:active {
+      box-shadow: none;
+      transform: translateY(3px);
+    }
+  </style>
+</head>
+<body>
+
+<h1>EducaKids - Jogo do Planeta 🌍</h1>
+
+<div id="playerSelect">
+  <label for="numPlayers">Selecione o número de jogadores (2 a 4): </label>
+  <select id="numPlayers">
+    <option value="2" selected>2</option>
+    <option value="3">3</option>
+    <option value="4">4</option>
+  </select>
+  <button id="startBtn">Iniciar Jogo</button>
+</div>
+
+<div id="diceResult" style="display:none;">Dado: -</div>
+<div id="board" style="display:none;"></div>
+
+<button id="diceBtn" style="display:none;">Jogar o Dado 🎲</button>
+
+<div id="status" style="min-height: 36px;"></div>
+
+<div id="scoreboard" style="display:none;"></div>
+
+<footer>Desenvolvido para ensinar crianças a cuidar do planeta com diversão!</footer>
+
+<!-- Modal da pergunta -->
+<div id="questionModal">
+  <div id="questionBox">
+    <h2 id="questionText">Pergunta aqui</h2>
+    <div class="options" id="optionsContainer"></div>
+  </div>
+</div>
+
+<script>
+  const board = document.getElementById('board');
+  const diceBtn = document.getElementById('diceBtn');
+  const status = document.getElementById('status');
+  const scoreBoard = document.getElementById('scoreboard');
+  const score1Span = document.createElement('span');
+  const score2Span = document.createElement('span');
+  const diceResult = document.getElementById('diceResult');
+  const questionModal = document.getElementById('questionModal');
+  const questionText = document.getElementById('questionText');
+  const optionsContainer = document.getElementById('optionsContainer');
+  const playerSelectDiv = document.getElementById('playerSelect');
+  const numPlayersSelect = document.getElementById('numPlayers');
+  const startBtn = document.getElementById('startBtn');
+
+  const totalCells = 100;
+  const challengeCells = [];
+  for(let i = 3; i <= totalCells; i += 4) {
+    challengeCells.push(i);
+  }
+
+  const allChallenges = [
+    {question:"Qual desses itens pode ser reciclado?", options:["Papel", "Comida", "Vidro", "Plástico"], answer:["papel","vidro","plástico"]},
+    {question:"Separar o lixo ajuda o meio ambiente?", options:["Sim", "Não"], answer:["sim"]},
+    {question:"O que é importante economizar para proteger o planeta?", options:["Água", "Energia", "Dinheiro"], answer:["água","energia"]},
+    {question:"Apagar as luzes ao sair de um cômodo ajuda a economizar o quê?", options:["Água", "Energia", "Dinheiro"], answer:["energia"]},
+    {question:"Plantar árvores ajuda o planeta?", options:["Sim", "Não"], answer:["sim"]},
+    {question:"As árvores ajudam a melhorar a qualidade do quê?", options:["Ar", "Água", "Solo"], answer:["ar"]},
+    {question:"É certo jogar lixo na rua?", options:["Sim", "Não"], answer:["não"]},
+    {question:"Lixo na rua pode causar problemas para quem?", options:["Pessoas", "Animais", "Plantas"], answer:["pessoas","animais","plantas"]},
+    {question:"O que podemos usar para economizar energia?", options:["Lâmpadas LED", "Lâmpadas incandescentes", "Televisão ligada o dia todo"], answer:["lâmpadas led"]},
+    {question:"O que é lixo eletrônico?", options:["Celular", "Papel", "Vidro"], answer:["celular"]},
+    {question:"Qual animal está ameaçado de extinção?", options:["Onça-pintada", "Cachorro", "Gato"], answer:["onça-pintada"]},
+    {question:"Que tipo de energia vem do sol?", options:["Energia solar", "Energia eólica", "Energia nuclear"], answer:["energia solar"]},
+    {question:"Qual o principal gás que causa efeito estufa?", options:["Dióxido de carbono", "Oxigênio", "Nitrogênio"], answer:["dióxido de carbono"]},
+    {question:"Plantar árvores ajuda a absorver qual gás?", options:["Dióxido de carbono", "Oxigênio", "Metano"], answer:["dióxido de carbono"]},
+    {question:"Que tipo de transporte ajuda a reduzir a poluição?", options:["Carro elétrico", "Carro a gasolina", "Avião"], answer:["carro elétrico"]},
+    {question:"Qual destes não é uma fonte de energia renovável?", options:["Carvão", "Vento", "Sol"], answer:["carvão"]},
+    {question:"O que devemos fazer com o lixo eletrônico?", options:["Jogar no lixo comum", "Levar para pontos de coleta", "Queimar"], answer:["levar para pontos de coleta"]},
+    {question:"O que é desmatamento?", options:["Corte de árvores", "Plantio de árvores", "Reciclagem"], answer:["corte de árvores"]},
+    {question:"Qual é a importância da água para a vida?", options:["É fundamental para todos os seres vivos", "Não é importante", "Só serve para beber"], answer:["é fundamental para todos os seres vivos"]},
+    {question:"Qual destes é um problema ambiental?", options:["Poluição", "Plantar árvores", "Reciclar"], answer:["poluição"]},
+    {question:"O que é pegada de carbono?", options:["Quantidade de gases que poluem", "Quantidade de árvores plantadas", "Quantidade de água usada"], answer:["quantidade de gases que poluem"]},
+    {question:"Qual o principal objetivo da reciclagem?", options:["Reduzir o lixo e poluição", "Aumentar o lixo", "Queimar tudo"], answer:["reduzir o lixo e poluição"]},
+    {question:"Qual é o planeta onde vivemos?", options:["Terra", "Marte", "Júpiter"], answer:["terra"]},
+    {question:"O que devemos fazer para preservar os rios?", options:["Não jogar lixo neles", "Poluir", "Desmatar"], answer:["não jogar lixo neles"]},
+    {question:"Qual destas atitudes ajuda a cuidar do planeta?", options:["Economizar água", "Desperdiçar energia", "Jogar lixo no chão"], answer:["economizar água"]},
+    {question:"O que é energia eólica?", options:["Energia do vento", "Energia do sol", "Energia da água"], answer:["energia do vento"]},
+    {question:"Plantar árvores ajuda a prevenir:", options:["Erosão do solo", "Poluição sonora", "Furacões"], answer:["erosão do solo"]},
+    {question:"Qual dessas ações ajuda a diminuir o lixo?", options:["Reutilizar materiais", "Jogar tudo fora", "Comprar muito plástico"], answer:["reutilizar materiais"]},
+  ];
+
+  let playerPositions = [];
+  let currentPlayer = 0;
+  let scores = [];
+  let questionsGame = [];
+  let questionIndex = 0;
+  let waitingAnswer = false;
+  let totalPlayers = 2;
+
+  // Cores dos jogadores para as peças
+  const playerColors = ['player1','player2','player3','player4'];
+
+  // Cria tabuleiro
+  function createBoard() {
+    board.innerHTML = '';
+    for(let i = 1; i <= totalCells; i++) {
+      const cell = document.createElement('div');
+      cell.classList.add('cell');
+      cell.textContent = i;
+      if(challengeCells.includes(i)) {
+        cell.classList.add('challenge');
+      }
+      board.appendChild(cell);
+    }
+  }
+
+  // Atualiza as posições dos jogadores no tabuleiro
+  function updatePlayers() {
+    // Remove todos jogadores
+    document.querySelectorAll('.player').forEach(el => el.remove());
+
+    const cells = board.querySelectorAll('.cell');
+
+    for(let i=0; i<totalPlayers; i++) {
+      let pos = playerPositions[i];
+      if(pos > 0 && pos <= totalCells) {
+        const cell = cells[pos - 1];
+        const p = document.createElement('div');
+        p.classList.add('player', playerColors[i]);
+        // Ajusta posições para não sobrepor muito
+        switch(i) {
+          case 0: p.style.top = '4px'; p.style.left = '5px'; break;
+          case 1: p.style.top = '4px'; p.style.right = '5px'; break;
+          case 2: p.style.bottom = '4px'; p.style.left = '5px'; break;
+          case 3: p.style.bottom = '4px'; p.style.right = '5px'; break;
+        }
+        cell.appendChild(p);
+      }
+    }
+  }
+
+  // Seleciona perguntas aleatórias entre 40 e 55 para a partida
+  function selectQuestions() {
+    const minQ = 40;
+    const maxQ = 55;
+    const numQ = Math.floor(Math.random() * (maxQ - minQ + 1)) + minQ;
+    const shuffled = allChallenges.sort(() => 0.5 - Math.random());
+    questionsGame = shuffled.slice(0, numQ);
+  }
+
+  // Exibe a pergunta no modal
+  function showQuestion() {
+    waitingAnswer = true;
+    diceBtn.disabled = true;
+    questionModal.style.display = 'flex';
+
+    const q = questionsGame[questionIndex];
+    questionText.textContent = q.question;
+
+    optionsContainer.innerHTML = '';
+    q.options.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.textContent = opt;
+      btn.classList.add('optionBtn');
+      btn.onclick = () => checkAnswer(opt);
+      optionsContainer.appendChild(btn);
+    });
+  }
+
+  // Verifica se resposta está correta
+  function checkAnswer(selected) {
+    const q = questionsGame[questionIndex];
+    const selectedLower = selected.toLowerCase().trim();
+
+    if(q.answer.some(a => a.toLowerCase() === selectedLower)) {
+      scores[currentPlayer]++;
+      alert("Resposta correta! 🎉 Você ganhou 1 ponto.");
+    } else {
+      alert("Resposta incorreta. 😞 Você volta 2 ou 3 casas.");
+      // Volta de 2 ou 3 casas aleatoriamente
+      const back = Math.floor(Math.random() * 2) + 2;
+      playerPositions[currentPlayer] -= back;
+      if(playerPositions[currentPlayer] < 1) playerPositions[currentPlayer] = 1;
+    }
+
+    updatePlayers();
+    scoreBoard.textContent = '';
+    for(let i=0; i<totalPlayers; i++) {
+      scoreBoard.textContent += `Jogador ${i+1} (${playerColors[i].replace('player','')}): ${scores[i]} pts  |  `;
+    }
+
+    questionModal.style.display = 'none';
+    waitingAnswer = false;
+
+    questionIndex++;
+
+    if(playerPositions[currentPlayer] >= totalCells || questionIndex >= questionsGame.length) {
+      endGame();
+      return;
+    }
+
+    currentPlayer = (currentPlayer + 1) % totalPlayers;
+    status.textContent = `Vez do Jogador ${currentPlayer + 1}. Clique em "Jogar o Dado".`;
+    diceBtn.disabled = false;
+  }
+
+  // Finaliza jogo
+  function endGame() {
+    diceBtn.disabled = true;
+    let maxScore = Math.max(...scores);
+    let winners = [];
+    scores.forEach((score,i) => {
+      if(score === maxScore) winners.push(i+1);
+    });
+
+    let message = '';
+    if(winners.length === 1) {
+      message = `Jogador ${winners[0]} venceu com ${maxScore} pontos! 🏆`;
+    } else {
+      message = `Empate entre jogadores: ${winners.join(', ')} com ${maxScore} pontos! 🤝`;
+    }
+    status.textContent = message + " Fim do jogo.";
+    diceResult.textContent = "Jogo terminado";
+  }
+
+  // Evento ao clicar no dado
+  diceBtn.onclick = () => {
+    if(waitingAnswer) return;
+
+    const diceRoll = Math.floor(Math.random() * 6) + 1;
+    diceResult.textContent = `Dado: ${diceRoll}`;
+
+    let newPosition = playerPositions[currentPlayer] + diceRoll;
+    if(newPosition > totalCells) newPosition = totalCells;
+    playerPositions[currentPlayer] = newPosition;
+
+    updatePlayers();
+
+    if(challengeCells.includes(newPosition)) {
+      status.textContent = `Jogador ${currentPlayer+1} caiu na casa ${newPosition} (Desafio)!`;
+      showQuestion();
+    } else {
+      currentPlayer = (currentPlayer + 1) % totalPlayers;
+      status.textContent = `Vez do Jogador ${currentPlayer+1}. Clique em "Jogar o Dado".`;
+    }
+
+    if(newPosition >= totalCells) {
+      endGame();
+    }
+  };
+
+  // Inicializa o jogo com a quantidade de jogadores selecionada
+  function startGame() {
+    totalPlayers = parseInt(numPlayersSelect.value);
+    playerPositions = new Array(totalPlayers).fill(0);
+    scores = new Array(totalPlayers).fill(0);
+    questionIndex = 0;
+    waitingAnswer = false;
+    currentPlayer = 0;
+
+    selectQuestions();
+    createBoard();
+    updatePlayers();
+
+    playerSelectDiv.style.display = 'none';
+    board.style.display = 'flex';
+    diceBtn.style.display = 'inline-block';
+    diceResult.style.display = 'block';
+    scoreBoard.style.display = 'block';
+
+    diceResult.textContent = 'Dado: -';
+    status.textContent = `Vez do Jogador 1. Clique em "Jogar o Dado".`;
+
+    // Mostrar placar inicial
+    scoreBoard.textContent = '';
+    for(let i=0; i<totalPlayers; i++) {
+      const colorName = playerColors[i].replace('player','');
+      scoreBoard.textContent += `Jogador ${i+1} (${colorName}): 0 pts  |  `;
+    }
+  }
+
+  startBtn.addEventListener('click', startGame);
+</script>
+
+</body>
+</html>

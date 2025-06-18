@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Herói do Planeta</title>
+<style>
+  body {
+    margin: 0; 
+    overflow: hidden; 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(to top, #87ceeb 0%, #ffffff 100%);
+  }
+  canvas {
+    background: #a3d9a5; /* grama */
+    display: block;
+    margin: 0 auto;
+    border: 3px solid #2e7d32;
+    border-radius: 10px;
+  }
+  #score {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    font-size: 22px;
+    color: #2e7d32;
+    font-weight: bold;
+  }
+  #message {
+    position: absolute;
+    bottom: 10px;
+    width: 100%;
+    text-align: center;
+    font-size: 18px;
+    color: #1565c0;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px white;
+  }
+</style>
+</head>
+<body>
+
+<div id="score">Pontos: 0</div>
+<div id="message">Use as setas para mover. Coletar lixo e plantar árvores!</div>
+
+<canvas id="gameCanvas" width="600" height="400"></canvas>
+
+<script>
+// Configurações básicas
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+const width = canvas.width;
+const height = canvas.height;
+
+let score = 0;
+const scoreDisplay = document.getElementById('score');
+const message = document.getElementById('message');
+
+// Personagem
+const player = {
+  x: width/2 - 20,
+  y: height/2 - 20,
+  size: 40,
+  speed: 5,
+  color: '#2e7d32'
+};
+
+// Objetos do jogo
+class GameObject {
+  constructor(x, y, size, color, type) {
+    this.x = x;
+    this.y = y;
+    this.size = size;
+    this.color = color;
+    this.type = type; // 'trash' ou 'treeSeed'
+    this.collected = false;
+  }
+
+  draw() {
+    if (this.collected) return;
+    ctx.fillStyle = this.color;
+    if (this.type === 'trash') {
+      // Desenhar lixo: quadrado com uma cruz
+      ctx.fillRect(this.x, this.y, this.size, this.size);
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(this.x + 5, this.y + 5);
+      ctx.lineTo(this.x + this.size - 5, this.y + this.size - 5);
+      ctx.moveTo(this.x + this.size - 5, this.y + 5);
+      ctx.lineTo(this.x + 5, this.y + this.size - 5);
+      ctx.stroke();
+    } else if (this.type === 'treeSeed') {
+      // Desenhar semente: círculo verde
+      ctx.beginPath();
+      ctx.arc(this.x + this.size/2, this.y + this.size/2, this.size/2, 0, 2 * Math.PI);
+      ctx.fill();
+    }
+  }
+}
+
+// Árvore plantada
+class Tree {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.size = 40;
+    this.color = '#2e7d32';
+  }
+  draw() {
+    // Desenho simples de árvore
+    // Tronco
+    ctx.fillStyle = '#5d4037';
+    ctx.fillRect(this.x + this.size/2 - 5, this.y + this.size/2, 10, this.size/2);
+    // Folhas
+    ctx.fillStyle = this.color;
+    ctx.beginPath();
+    ctx.moveTo(this.x + this.size/2, this.y);
+    ctx.lineTo(this.x + this.size, this.y + this.size/2);
+    ctx.lineTo(this.x, this.y + this.size/2);
+    ctx.closePath();
+    ctx.fill();
+  }
+}
+
+let trashItems = [];
+let seedItems = [];
+let trees = [];
+
+// Criar lixo e sementes aleatórios
+function spawnObjects() {
+  trashItems = [];
+  seedItems = [];
+  for (let i=0; i<5; i++) {
+    trashItems.push(new GameObject(randomPos(width-40), randomPos(height-40), 30, '#b71c1c', 'trash'));
+    seedItems.push(new GameObject(randomPos(width-40), randomPos(height-40), 25, '#388e3c', 'treeSeed'));
+  }
+}
+
+function randomPos(max) {
+  return Math.floor(Math.random() * max);
+}
+
+// Movimento do jogador
+const keys = {};
+window.addEventListener('keydown', e => {
+  keys[e.key] = true;
+});
+window.addEventListener('keyup', e => {
+  keys[e.key] = false;
+});
+
+function movePlayer() {
+  if (keys['ArrowUp'] && player.y > 0) player.y -= player.speed;
+  if (keys['ArrowDown'] && player.y < height - player.size) player.y += player.speed;
+  if (keys['ArrowLeft'] && player.x > 0) player.x -= player.speed;
+  if (keys['ArrowRight'] && player.x < width - player.size) player.x += player.speed;
+}
+
+// Colisões simples AABB
+function checkCollision(a, b) {
+  return !(
+    ((a.y + a.size) < (b.y)) ||
+    (a.y > (b.y + b.size)) ||
+    ((a.x + a.size) < b.x) ||
+    (a.x > (b.x + b.size))
+  );
+}
+
+// Atualizar jogo
+function update() {
+  movePlayer();
+
+  // Checar coleta de lixo
+  trashItems.forEach(item => {
+    if (!item.collected && checkCollision(player, item)) {
+      item.collected = true;
+      score += 10;
+      message.textContent = "Você coletou lixo! O planeta agradece!";
+    }
+  });
+
+  // Checar coleta de sementes
+  seedItems.forEach(item => {
+    if (!item.collected && checkCollision(player, item)) {
+      item.collected = true;
+      score += 5;
+      message.textContent = "Você pegou uma semente! Agora plante-a!";
+    }
+  });
+
+  // Plantar árvore ao pressionar espaço perto da semente coletada
+  if (keys[' '] || keys['Spacebar']) {
+    // Verificar se o jogador está sobre um local vazio e tem sementes coletadas
+    const seedsCollected = seedItems.filter(i => i.collected).length;
+    if (seedsCollected > trees.length) {
+      // Plantar árvore na posição do jogador
+      trees.push(new Tree(player.x, player.y));
+      message.textContent = "Árvore plantada! O planeta fica mais verde!";
+      score += 15;
+    } else {
+      message.textContent = "Você precisa coletar uma semente para plantar!";
+    }
+    // Evitar plantar várias árvores segurando espaço
+    keys[' '] = false;
+    keys['Spacebar'] = false;
+  }
+
+  // Limpar mensagem após alguns segundos
+  clearTimeout(message.timeout);
+  message.timeout = setTimeout(() => {
+    message.textContent = "Use as setas para mover. Coletar lixo e plantar árvores!";
+  }, 4000);
+
+  scoreDisplay.textContent = `Pontos: ${score}`;
+}
+
+// Desenhar jogo
+function draw() {
+  ctx.clearRect(0, 0, width, height);
+
+  // Desenhar grama de base
+  ctx.fillStyle = '#a3d9a5';
+  ctx.fillRect(0, 0, width, height);
+
+  // Desenhar árvores
+  trees.forEach(tree => tree.draw());
+
+  // Desenhar lixo
+  trashItems.forEach(item => item.draw());
+
+  // Desenhar sementes
+  seedItems.forEach(item => item.draw());
+
+  // Desenhar jogador
+  ctx.fillStyle = player.color;
+  ctx.fillRect(player.x, player.y, player.size, player.size);
+  // Olhos simples para personagem
+  ctx.fillStyle = 'white';
+  ctx.fillRect(player.x + 10, player.y + 10, 8, 8);
+  ctx.fillRect(player.x + 22, player.y + 10, 8, 8);
+  ctx.fillStyle = 'black';
+  ctx.fillRect(player.x + 12, player.y + 12, 4, 4);
+  ctx.fillRect(player.x + 24, player.y + 12, 4, 4);
+}
+
+// Loop principal
+function gameLoop() {
+  update();
+  draw();
+  requestAnimationFrame(gameLoop);
+}
+
+spawnObjects();
+gameLoop();
+</script>
+
+</body>
+</html>

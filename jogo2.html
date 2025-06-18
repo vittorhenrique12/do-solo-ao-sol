@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quiz EducaKids - Cuide do Planeta</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #e8f5e9;
+      color: #2e7d32;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    #quiz-container {
+      background: white;
+      padding: 20px 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(46, 125, 50, 0.3);
+      max-width: 600px;
+      width: 100%;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #388e3c;
+    }
+    #question {
+      font-size: 1.2rem;
+      margin-bottom: 15px;
+    }
+    .options {
+      list-style: none;
+      padding: 0;
+    }
+    .options li {
+      margin-bottom: 10px;
+    }
+    button.option-btn {
+      width: 100%;
+      padding: 10px 15px;
+      font-size: 1rem;
+      background-color: #81c784;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button.option-btn:hover {
+      background-color: #66bb6a;
+    }
+    button.option-btn.correct {
+      background-color: #4caf50 !important;
+      cursor: default;
+    }
+    button.option-btn.wrong {
+      background-color: #e57373 !important;
+      cursor: default;
+    }
+    #next-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 1rem;
+      background-color: #388e3c;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      cursor: pointer;
+      display: none;
+    }
+    #score {
+      text-align: center;
+      font-size: 1.3rem;
+      margin-top: 20px;
+      color: #2e7d32;
+    }
+    #restart-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 1rem;
+      background-color: #388e3c;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      cursor: pointer;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="quiz-container">
+    <h1>Quiz EducaKids: Cuide do Planeta</h1>
+    <div id="question"></div>
+    <ul class="options"></ul>
+    <button id="next-btn">Próxima</button>
+    <div id="score"></div>
+    <button id="restart-btn">Reiniciar Quiz</button>
+  </div>
+
+  <script>
+    const quizData = [
+      {
+        question: "Por que é importante economizar água?",
+        options: [
+          "Porque a água é um recurso limitado e essencial para a vida",
+          "Porque a água é infinita e não precisamos nos preocupar",
+          "Porque gastar água é divertido"
+        ],
+        correct: 0,
+      },
+      {
+        question: "Qual dessas ações ajuda a reciclar o lixo?",
+        options: [
+          "Separar papel, plástico e vidro em diferentes lixeiras",
+          "Jogar tudo no mesmo lixo",
+          "Queimar o lixo na rua"
+        ],
+        correct: 0,
+      },
+      {
+        question: "O que devemos fazer para ajudar os animais?",
+        options: [
+          "Deixar lixo nas ruas",
+          "Cuidar dos habitats e não maltratar os animais",
+          "Caçar por diversão"
+        ],
+        correct: 1,
+      },
+      {
+        question: "Qual é uma boa prática para economizar energia em casa?",
+        options: [
+          "Deixar as luzes acesas o tempo todo",
+          "Desligar aparelhos eletrônicos quando não estiverem em uso",
+          "Usar aparelhos sem necessidade"
+        ],
+        correct: 1,
+      },
+      {
+        question: "Plantar árvores ajuda o planeta porque:",
+        options: [
+          "As árvores produzem oxigênio e ajudam a combater a poluição",
+          "Árvores ocupam espaço inútil",
+          "Árvores fazem o planeta mais sujo"
+        ],
+        correct: 0,
+      },
+      {
+        question: "Qual é uma maneira divertida e saudável de ajudar o planeta?",
+        options: [
+          "Fazer esportes ao ar livre e cuidar da natureza",
+          "Ficar dentro de casa o dia todo",
+          "Jogar lixo no parque"
+        ],
+        correct: 0,
+      },
+      {
+        question: "Por que devemos evitar o desperdício de alimentos?",
+        options: [
+          "Para economizar dinheiro e proteger o meio ambiente",
+          "Porque comida estragada é engraçada",
+          "Não tem problema desperdiçar"
+        ],
+        correct: 0,
+      },
+      {
+        question: "O que é compostagem?",
+        options: [
+          "Transformar restos de comida em adubo para as plantas",
+          "Jogar comida fora",
+          "Queimar o lixo orgânico"
+        ],
+        correct: 0,
+      },
+      {
+        question: "O que devemos fazer ao sair de casa para ajudar o planeta?",
+        options: [
+          "Desligar luzes e aparelhos eletrônicos",
+          "Deixar tudo ligado",
+          "Abrir as janelas e deixar o ar condicionado ligado"
+        ],
+        correct: 0,
+      },
+      {
+        question: "Por que plantar flores é uma boa ideia?",
+        options: [
+          "Elas ajudam os insetos e embelezam o ambiente",
+          "Porque é uma tarefa chata",
+          "Flores não têm importância"
+        ],
+        correct: 0,
+      },
+      // Pode adicionar mais perguntas aqui para aumentar a lista
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+
+    const questionEl = document.getElementById("question");
+    const optionsEl = document.querySelector(".options");
+    const nextBtn = document.getElementById("next-btn");
+    const scoreEl = document.getElementById("score");
+    const restartBtn = document.getElementById("restart-btn");
+
+    function loadQuestion() {
+      resetState();
+      const currentQuizData = quizData[currentQuestion];
+      questionEl.innerText = `Pergunta ${currentQuestion + 1}: ${currentQuizData.question}`;
+      currentQuizData.options.forEach((option, index) => {
+        const li = document.createElement("li");
+        const button = document.createElement("button");
+        button.innerText = option;
+        button.classList.add("option-btn");
+        button.addEventListener("click", () => selectAnswer(index));
+        li.appendChild(button);
+        optionsEl.appendChild(li);
+      });
+    }
+
+    function resetState() {
+      nextBtn.style.display = "none";
+      while (optionsEl.firstChild) {
+        optionsEl.removeChild(optionsEl.firstChild);
+      }
+      scoreEl.innerText = "";
+      restartBtn.style.display = "none";
+    }
+
+    function selectAnswer(selectedIndex) {
+      const currentQuizData = quizData[currentQuestion];
+      const buttons = optionsEl.querySelectorAll("button.option-btn");
+      buttons.forEach((btn, idx) => {
+        btn.disabled = true;
+        if (idx === currentQuizData.correct) {
+          btn.classList.add("correct");
+        }
+        if (idx === selectedIndex && idx !== currentQuizData.correct) {
+          btn.classList.add("wrong");
+        }
+      });
+
+      if (selectedIndex === currentQuizData.correct) {
+        score++;
+      }
+
+      nextBtn.style.display = "inline-block";
+    }
+
+    nextBtn.addEventListener("click", () => {
+      currentQuestion++;
+      if (currentQuestion < quizData.length) {
+        loadQuestion();
+      } else {
+        showScore();
+      }
+    });
+
+    restartBtn.addEventListener("click", () => {
+      currentQuestion = 0;
+      score = 0;
+      loadQuestion();
+    });
+
+    function showScore() {
+      resetState();
+      questionEl.innerText = "Parabéns! Você terminou o quiz.";
+      scoreEl.innerText = `Você acertou ${score} de ${quizData.length} perguntas.`;
+      restartBtn.style.display = "inline-block";
+    }
+
+    loadQuestion();
+  </script>
+</body>
+</html>

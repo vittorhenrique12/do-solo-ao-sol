@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quiz EducaKids - Cuide do Planeta</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #e8f5e9;
+      color: #2e7d32;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    #quiz-container {
+      background: white;
+      padding: 20px 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(46, 125, 50, 0.3);
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 20px;
+      color: #388e3c;
+    }
+    #question {
+      font-size: 1.2rem;
+      margin-bottom: 15px;
+    }
+    .options {
+      list-style: none;
+      padding: 0;
+      text-align: left;
+    }
+    .options li {
+      margin-bottom: 10px;
+    }
+    button.option-btn, #next-btn, #restart-btn {
+      width: 100%;
+      padding: 10px 15px;
+      font-size: 1rem;
+      background-color: #81c784;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      margin-top: 10px;
+    }
+    button.option-btn:hover, #next-btn:hover, #restart-btn:hover {
+      background-color: #66bb6a;
+    }
+    button.option-btn.correct {
+      background-color: #4caf50 !important;
+      cursor: default;
+    }
+    button.option-btn.wrong {
+      background-color: #e57373 !important;
+      cursor: default;
+    }
+    #next-btn, #restart-btn {
+      display: none;
+    }
+    #score {
+      font-size: 1.3rem;
+      margin-top: 20px;
+      color: #2e7d32;
+    }
+    #difficulty-selection button {
+      width: 48%;
+      margin: 1%;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <div id="quiz-container">
+    <h1>Quiz EducaKids: Cuide do Planeta</h1>
+
+    <div id="difficulty-selection">
+      <p>Escolha a dificuldade do quiz:</p>
+      <button id="easy-btn">Fácil</button>
+      <button id="hard-btn">Difícil</button>
+    </div>
+
+    <div id="quiz-content" style="display:none;">
+      <div id="question"></div>
+      <ul class="options"></ul>
+      <button id="next-btn">Próxima</button>
+      <div id="score"></div>
+      <button id="restart-btn">Reiniciar Quiz</button>
+      <button id="back-btn" style="background:#388e3c; margin-top:10px; display:none;">Voltar para seleção</button>
+    </div>
+  </div>
+
+  <script>
+    const easyQuizData = [
+      {
+        question: "Por que é importante economizar água?",
+        options: [
+          "Porque a água é um recurso limitado e essencial para a vida",
+          "Porque a água é infinita e não precisamos nos preocupar",
+          "Porque gastar água é divertido"
+        ],
+        correct: 0,
+      },
+      {
+        question: "Qual dessas ações ajuda a reciclar o lixo?",
+        options: [
+          "Separar papel, plástico e vidro em diferentes lixeiras",
+          "Jogar tudo no mesmo lixo",
+          "Queimar o lixo na rua"
+        ],
+        correct: 0,
+      },
+      {
+        question: "O que devemos fazer para ajudar os animais?",
+        options: [
+          "Deixar lixo nas ruas",
+          "Cuidar dos habitats e não maltratar os animais",
+          "Caçar por diversão"
+        ],
+        correct: 1,
+      },
+      // Pode colocar mais perguntas fáceis aqui...
+    ];
+
+    const hardQuizData = [
+      {
+        question: "Qual o principal gás responsável pelo efeito estufa?",
+        options: [
+          "Oxigênio",
+          "Dióxido de carbono (CO₂)",
+          "Nitrogênio"
+        ],
+        correct: 1,
+      },
+      {
+        question: "Qual prática contribui para a conservação do solo?",
+        options: [
+          "Desmatar grandes áreas para agricultura",
+          "Plantio direto e rotação de culturas",
+          "Construir estradas na floresta"
+        ],
+        correct: 1,
+      },
+      {
+        question: "O que significa desenvolvimento sustentável?",
+        options: [
+          "Desenvolver sem se preocupar com o meio ambiente",
+          "Atender às necessidades do presente sem comprometer as futuras gerações",
+          "Explorar todos os recursos naturais disponíveis"
+        ],
+        correct: 1,
+      },
+      {
+        question: "Qual a importância das abelhas para o planeta?",
+        options: [
+          "Produzir mel para os humanos",
+          "Polinizar plantas, garantindo a reprodução delas",
+          "Fazer barulho na natureza"
+        ],
+        correct: 1,
+      },
+      {
+        question: "O que é a pegada ecológica?",
+        options: [
+          "Uma marca que deixamos na natureza",
+          "A quantidade de recursos naturais consumidos por uma pessoa",
+          "Um tipo de pegada de animal"
+        ],
+        correct: 1,
+      },
+      // Mais perguntas difíceis podem ser adicionadas aqui...
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+    let quizData = [];
+
+    const difficultySelection = document.getElementById("difficulty-selection");
+    const quizContent = document.getElementById("quiz-content");
+    const questionEl = document.getElementById("question");
+    const optionsEl = document.querySelector(".options");
+    const nextBtn = document.getElementById("next-btn");
+    const scoreEl = document.getElementById("score");
+    const restartBtn = document.getElementById("restart-btn");
+    const backBtn = document.getElementById("back-btn");
+
+    document.getElementById("easy-btn").addEventListener("click", () => startQuiz("easy"));
+    document.getElementById("hard-btn").addEventListener("click", () => startQuiz("hard"));
+    nextBtn.addEventListener("click", () => {
+      currentQuestion++;
+      if (currentQuestion < quizData.length) {
+        loadQuestion();
+      } else {
+        showScore();
+      }
+    });
+    restartBtn.addEventListener("click", () => {
+      currentQuestion = 0;
+      score = 0;
+      loadQuestion();
+      scoreEl.innerText = "";
+      restartBtn.style.display = "none";
+      nextBtn.style.display = "none";
+    });
+    backBtn.addEventListener("click", () => {
+      quizContent.style.display = "none";
+      difficultySelection.style.display = "block";
+      scoreEl.innerText = "";
+      restartBtn.style.display = "none";
+      nextBtn.style.display = "none";
+    });
+
+    function startQuiz(level) {
+      difficultySelection.style.display = "none";
+      quizContent.style.display = "block";
+      backBtn.style.display = "inline-block";
+      if (level === "easy") {
+        quizData = easyQuizData;
+      } else {
+        quizData = hardQuizData;
+      }
+      currentQuestion = 0;
+      score = 0;
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      resetState();
+      const currentQuizData = quizData[currentQuestion];
+      questionEl.innerText = `Pergunta ${currentQuestion + 1} de ${quizData.length}: ${currentQuizData.question}`;
+      currentQuizData.options.forEach((option, index) => {
+        const li = document.createElement("li");
+        const button = document.createElement("button");
+        button.innerText = option;
+        button.classList.add("option-btn");
+        button.addEventListener("click", () => selectAnswer(index));
+        li.appendChild(button);
+        optionsEl.appendChild(li);
+      });
+    }
+
+    function resetState() {
+      nextBtn.style.display = "none";
+      restartBtn.style.display = "none";
+      scoreEl.innerText = "";
+      while (optionsEl.firstChild) {
+        optionsEl.removeChild(optionsEl.firstChild);
+      }
+    }
+
+    function selectAnswer(selectedIndex) {
+      const currentQuizData = quizData[currentQuestion];
+      const buttons = optionsEl.querySelectorAll("button.option-btn");
+      buttons.forEach((btn, idx) => {
+        btn.disabled = true;
+        if (idx === currentQuizData.correct) {
+          btn.classList.add("correct");
+        }
+        if (idx === selectedIndex && idx !== currentQuizData.correct) {
+          btn.classList.add("wrong");
+        }
+      });
+      if (selectedIndex === currentQuizData.correct) {
+        score++;
+      }
+      nextBtn.style.display = "inline-block";
+    }
+
+    function showScore() {
+      resetState();
+      questionEl.innerText = "Parabéns! Você terminou o quiz.";
+      scoreEl.innerText = `Você acertou ${score} de ${quizData.length} perguntas.`;
+      restartBtn.style.display = "inline-block";
+      nextBtn.style.display = "none";
+    }
+  </script>
+</body>
+</html>
